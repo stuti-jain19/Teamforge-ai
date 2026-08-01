@@ -1,14 +1,7 @@
-function App() {
-  return (
-    <div>
-      <h1>TeamForge AI by Stuti Jain</h1>
+import Home from "./pages/Home";
 
-      <p>
-         Build amazing hackathon teams with AI.
-      </p>
-    </div>
-  )
+function App() {
+  return <Home />;
 }
 
-export default App
-
+export default App;
