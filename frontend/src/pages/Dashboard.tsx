@@ -1,8 +1,92 @@
+import TeamCard from "../components/dashboard/TeamCard";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { createTeam, getUserTeams } from "../lib/teamService";
+import type { Team } from "../types/team";
 
 function Dashboard() {
   const { user, signOutUser } = useAuth();
+
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(true);
+
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [teamName, setTeamName] = useState("");
+  const [teamDescription, setTeamDescription] = useState("");
+  const [creatingTeam, setCreatingTeam] = useState(false);
+  const [teamError, setTeamError] = useState("");
+  const [teamSuccess, setTeamSuccess] = useState("");
+
+  // Load user's teams
+  useEffect(() => {
+    const loadTeams = async () => {
+      if (!user) {
+        setTeams([]);
+        setLoadingTeams(false);
+        return;
+      }
+
+      try {
+        setLoadingTeams(true);
+
+        const userTeams = await getUserTeams(user.uid);
+
+        setTeams(userTeams);
+      } catch (error) {
+        console.error("Error loading teams:", error);
+        setTeamError("Unable to load your teams.");
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+
+    loadTeams();
+  }, [user]);
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      setTeamError("You must be logged in to create a team.");
+      return;
+    }
+
+    if (!teamName.trim()) {
+      setTeamError("Please enter a team name.");
+      return;
+    }
+
+    try {
+      setCreatingTeam(true);
+      setTeamError("");
+      setTeamSuccess("");
+
+      await createTeam(
+        teamName.trim(),
+        teamDescription.trim(),
+        {
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+        }
+      );
+
+      // Refresh teams after creating a new team
+      const updatedTeams = await getUserTeams(user.uid);
+      setTeams(updatedTeams);
+
+      setTeamName("");
+      setTeamDescription("");
+      setShowCreateTeam(false);
+      setTeamSuccess("Team created successfully! 🎉");
+    } catch (error) {
+      console.error("Error creating team:", error);
+      setTeamError("Something went wrong while creating your team.");
+    } finally {
+      setCreatingTeam(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
@@ -42,6 +126,138 @@ function Dashboard() {
             Find the right people, build amazing projects, and create
             something great together.
           </p>
+        </section>
+
+        {/* Teams Section */}
+        <section className="mb-10">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+
+            {/* Teams Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-semibold">
+                  Your Teams
+                </h3>
+
+                <p className="text-slate-400 text-sm mt-1">
+                  Create a team and start building together.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowCreateTeam(!showCreateTeam);
+                  setTeamError("");
+                  setTeamSuccess("");
+                }}
+                className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition"
+              >
+                {showCreateTeam ? "Cancel" : "+ Create Team"}
+              </button>
+            </div>
+
+            {/* Success Message */}
+            {teamSuccess && (
+              <div className="mt-5 p-4 rounded-lg border border-green-800 bg-green-950/40 text-green-400">
+                {teamSuccess}
+              </div>
+            )}
+
+            {/* Create Team Form */}
+            {showCreateTeam && (
+              <form
+                onSubmit={handleCreateTeam}
+                className="mt-6 pt-6 border-t border-slate-800"
+              >
+                <div className="space-y-5">
+
+                  {/* Team Name */}
+                  <div>
+                    <label
+                      htmlFor="teamName"
+                      className="block text-sm font-medium text-slate-300 mb-2"
+                    >
+                      Team Name
+                    </label>
+
+                    <input
+                      id="teamName"
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      placeholder="e.g. TeamForge Developers"
+                      className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+                    />
+                  </div>
+
+                  {/* Team Description */}
+                  <div>
+                    <label
+                      htmlFor="teamDescription"
+                      className="block text-sm font-medium text-slate-300 mb-2"
+                    >
+                      Description
+                    </label>
+
+                    <textarea
+                      id="teamDescription"
+                      value={teamDescription}
+                      onChange={(e) => setTeamDescription(e.target.value)}
+                      placeholder="What is this team working on?"
+                      rows={4}
+                      className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition resize-none"
+                    />
+                  </div>
+
+                  {/* Error */}
+                  {teamError && (
+                    <div className="p-4 rounded-lg border border-red-800 bg-red-950/40 text-red-400">
+                      {teamError}
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={creatingTeam}
+                    className="w-full md:w-auto px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium transition"
+                  >
+                    {creatingTeam ? "Creating Team..." : "Create Team 🚀"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Team List */}
+            <div className="mt-8 pt-6 border-t border-slate-800">
+
+              {loadingTeams ? (
+                <p className="text-slate-400">
+                  Loading your teams...
+                </p>
+              ) : teams.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-3">
+                    👥
+                  </div>
+
+                  <p className="text-slate-400">
+                    You haven't created or joined any teams yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                 {teams.map((team) => (
+  <TeamCard
+    key={team.id}
+    team={team}
+  />
+))}
+                </div>
+              )}
+
+            </div>
+          </div>
         </section>
 
         {/* Dashboard Cards */}

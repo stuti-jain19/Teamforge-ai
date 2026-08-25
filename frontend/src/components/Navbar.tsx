@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Navbar() {
   return (
     <nav className="w-full flex justify-between items-center px-10 py-6">
@@ -14,9 +16,12 @@ function Navbar() {
           About
         </button>
 
-        <button className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg text-white">
+        <Link
+          to="/login"
+          className="inline-block bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg text-white"
+        >
           Login
-        </button>
+        </Link>
       </div>
     </nav>
   );
