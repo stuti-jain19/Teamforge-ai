@@ -2,6 +2,8 @@ import {
   addDoc,
   collection,
   getDocs,
+  getDoc,
+  doc,
   query,
   where,
   serverTimestamp,
@@ -48,4 +50,24 @@ export const getUserTeams = async (userId: string): Promise<Team[]> => {
     id: doc.id,
     ...doc.data(),
   })) as Team[];
+};
+
+export const getTeamMembers = async (memberIds: string[]) => {
+  const members = await Promise.all(
+    memberIds.map(async (uid) => {
+      const userRef = doc(db, "users", uid);
+      const userSnapshot = await getDoc(userRef);
+
+      if (!userSnapshot.exists()) {
+        return null;
+      }
+
+      return {
+        uid,
+        ...userSnapshot.data(),
+      };
+    })
+  );
+
+  return members.filter(Boolean);
 };

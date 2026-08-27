@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  doc,
-  getDoc,
-} from "firebase/firestore";
+
+import { useAuth } from "../context/AuthContext";
+import { getTeamMembers } from "../lib/teamService";
+import { doc, getDoc } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
 import type { Team } from "../types/team";
+import type { UserProfile } from "../types/user";
 
 function TeamDetails() {
   const { teamId } = useParams<{ teamId: string }>();
+  const { user } = useAuth();
 
   const [team, setTeam] = useState<Team | null>(null);
+  const [members, setMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -37,15 +41,24 @@ function TeamDetails() {
 
         const teamData = teamSnapshot.data();
 
-        setTeam({
+        const loadedTeam = {
           id: teamSnapshot.id,
           ...teamData,
-        } as Team);
+        } as Team;
+
+        setTeam(loadedTeam);
+
+        setLoadingMembers(true);
+
+        const teamMembers = await getTeamMembers(loadedTeam.memberIds);
+
+        setMembers(teamMembers as UserProfile[]);
       } catch (error) {
         console.error("Error loading team:", error);
         setError("Unable to load this team.");
       } finally {
         setLoading(false);
+        setLoadingMembers(false);
       }
     };
 
@@ -154,7 +167,7 @@ function TeamDetails() {
             </p>
           </div>
 
-          {/* Members */}
+          {/* Members Count */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div className="text-3xl mb-4">
               👥
@@ -177,7 +190,89 @@ function TeamDetails() {
 
         </section>
 
-        {/* Future Projects Section */}
+        {/* Team Members */}
+        <section className="mt-6 bg-slate-900 border border-slate-800 rounded-2xl p-8">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="text-3xl">
+              👥
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold">
+                Team Members
+              </h2>
+
+              <p className="text-slate-400 text-sm mt-1">
+                People currently part of this team.
+              </p>
+            </div>
+          </div>
+
+          {loadingMembers ? (
+            <p className="text-slate-400">
+              Loading members...
+            </p>
+          ) : members.length === 0 ? (
+            <div className="text-center py-8 border border-dashed border-slate-700 rounded-xl">
+              <p className="text-slate-500">
+                No member profiles found.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {members.map((member) => (
+                <div
+                  key={member.uid}
+                  className="bg-slate-950 border border-slate-800 rounded-xl p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+
+                    <div>
+                      <h3 className="text-lg font-semibold">
+                        {member.name || "Unnamed User"}
+                      </h3>
+
+                      <p className="text-slate-400 text-sm mt-1">
+                        {member.email}
+                      </p>
+                    </div>
+
+                    {member.uid === user?.uid && (
+                      <span className="text-xs px-3 py-1 rounded-full bg-blue-950 text-blue-400 border border-blue-800">
+                        You
+                      </span>
+                    )}
+
+                  </div>
+
+                  {member.skills && member.skills.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">
+                        Skills
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {member.skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              ))}
+            </div>
+          )}
+
+        </section>
+
+        {/* Projects Section */}
         <section className="mt-6 bg-slate-900 border border-slate-800 rounded-2xl p-8">
 
           <div className="text-3xl mb-4">
