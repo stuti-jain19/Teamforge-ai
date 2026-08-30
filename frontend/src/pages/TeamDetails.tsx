@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 import { useAuth } from "../context/AuthContext";
-import { getTeamMembers } from "../lib/teamService";
-import { doc, getDoc } from "firebase/firestore";
-
+import {
+  getTeamMembers,
+  addMemberToTeam,
+} from "../lib/teamService";
 import { db } from "../firebase/firebase";
 import type { Team } from "../types/team";
 import type { UserProfile } from "../types/user";
@@ -18,6 +20,27 @@ function TeamDetails() {
   const [loading, setLoading] = useState(true);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [error, setError] = useState("");
+
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [memberEmail, setMemberEmail] = useState("");
+  const [addingMember, setAddingMember] = useState(false);
+  const [memberError, setMemberError] = useState("");
+  const [memberSuccess, setMemberSuccess] = useState("");
+
+  const loadMembers = async (memberIds: string[]) => {
+    try {
+      setLoadingMembers(true);
+
+      const teamMembers = await getTeamMembers(memberIds);
+
+      setMembers(teamMembers as UserProfile[]);
+    } catch (error) {
+      console.error("Error loading members:", error);
+      setMemberError("Unable to load team members.");
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
 
   useEffect(() => {
     const loadTeam = async () => {
@@ -48,22 +71,85 @@ function TeamDetails() {
 
         setTeam(loadedTeam);
 
-        setLoadingMembers(true);
-
-        const teamMembers = await getTeamMembers(loadedTeam.memberIds);
-
-        setMembers(teamMembers as UserProfile[]);
+        await loadMembers(loadedTeam.memberIds);
       } catch (error) {
         console.error("Error loading team:", error);
         setError("Unable to load this team.");
       } finally {
         setLoading(false);
-        setLoadingMembers(false);
       }
     };
 
     loadTeam();
   }, [teamId]);
+
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!team || !user) {
+      setMemberError("Unable to add member.");
+      return;
+    }
+
+    if (team.ownerId !== user.uid) {
+      setMemberError("Only the team owner can add members.");
+      return;
+    }
+
+    const email = memberEmail.trim().toLowerCase();
+
+    if (!email) {
+      setMemberError("Please enter a user's email.");
+      return;
+    }
+
+    try {
+      setAddingMember(true);
+      setMemberError("");
+      setMemberSuccess("");
+
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        setMemberError("No user found with this email.");
+        return;
+      }
+
+      const userDoc = snapshot.docs[0];
+      const userId = userDoc.id;
+
+      if (team.memberIds.includes(userId)) {
+        setMemberError("This user is already a member of the team.");
+        return;
+      }
+
+      await addMemberToTeam(team.id, userId);
+
+      const updatedMemberIds = [...team.memberIds, userId];
+
+      setTeam({
+        ...team,
+        memberIds: updatedMemberIds,
+      });
+
+      await loadMembers(updatedMemberIds);
+
+      setMemberEmail("");
+      setMemberSuccess("Member added successfully! 🎉");
+    } catch (error) {
+      console.error("Error adding member:", error);
+
+      if (error instanceof Error) {
+        setMemberError(error.message);
+      } else {
+        setMemberError("Something went wrong while adding the member.");
+      }
+    } finally {
+      setAddingMember(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -79,7 +165,6 @@ function TeamDetails() {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-6">
         <div className="max-w-4xl mx-auto">
-
           <Link
             to="/dashboard"
             className="text-blue-400 hover:text-blue-300 transition"
@@ -100,17 +185,17 @@ function TeamDetails() {
               {error || "We couldn't find this team."}
             </p>
           </div>
-
         </div>
       </div>
     );
   }
 
+  const isOwner = user?.uid === team.ownerId;
+
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
       <div className="max-w-5xl mx-auto">
 
-        {/* Back Button */}
         <Link
           to="/dashboard"
           className="inline-block text-blue-400 hover:text-blue-300 transition mb-8"
@@ -120,9 +205,7 @@ function TeamDetails() {
 
         {/* Team Header */}
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-8 mb-6">
-
           <div className="flex items-start justify-between gap-6">
-
             <div>
               <p className="text-blue-400 text-sm font-medium mb-2">
                 TEAM
@@ -140,9 +223,7 @@ function TeamDetails() {
             <div className="text-5xl">
               🚀
             </div>
-
           </div>
-
         </section>
 
         {/* Team Information */}
@@ -189,6 +270,80 @@ function TeamDetails() {
           </div>
 
         </section>
+
+        {/* Add Member */}
+        {isOwner && (
+          <section className="mt-6 bg-slate-900 border border-slate-800 rounded-2xl p-8">
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold">
+                  Add Team Member
+                </h2>
+
+                <p className="text-slate-400 text-sm mt-1">
+                  Add an existing TeamForge user using their email.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowAddMember(!showAddMember);
+                  setMemberError("");
+                  setMemberSuccess("");
+                }}
+                className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition"
+              >
+                {showAddMember ? "Cancel" : "+ Add Member"}
+              </button>
+            </div>
+
+            {memberSuccess && (
+              <div className="mt-5 p-4 rounded-lg border border-green-800 bg-green-950/40 text-green-400">
+                {memberSuccess}
+              </div>
+            )}
+
+            {showAddMember && (
+              <form
+                onSubmit={handleAddMember}
+                className="mt-6 pt-6 border-t border-slate-800"
+              >
+                <label
+                  htmlFor="memberEmail"
+                  className="block text-sm font-medium text-slate-300 mb-2"
+                >
+                  User Email
+                </label>
+
+                <div className="flex flex-col md:flex-row gap-3">
+                  <input
+                    id="memberEmail"
+                    type="email"
+                    value={memberEmail}
+                    onChange={(e) => setMemberEmail(e.target.value)}
+                    placeholder="e.g. teammate@example.com"
+                    className="flex-1 px-4 py-3 rounded-lg bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={addingMember}
+                    className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium transition"
+                  >
+                    {addingMember ? "Adding..." : "Add Member"}
+                  </button>
+                </div>
+
+                {memberError && (
+                  <div className="mt-4 p-4 rounded-lg border border-red-800 bg-red-950/40 text-red-400">
+                    {memberError}
+                  </div>
+                )}
+              </form>
+            )}
+          </section>
+        )}
 
         {/* Team Members */}
         <section className="mt-6 bg-slate-900 border border-slate-800 rounded-2xl p-8">
@@ -272,7 +427,7 @@ function TeamDetails() {
 
         </section>
 
-        {/* Projects Section */}
+        {/* Projects */}
         <section className="mt-6 bg-slate-900 border border-slate-800 rounded-2xl p-8">
 
           <div className="text-3xl mb-4">

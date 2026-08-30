@@ -7,6 +7,7 @@ import {
   query,
   where,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
@@ -70,4 +71,28 @@ export const getTeamMembers = async (memberIds: string[]) => {
   );
 
   return members.filter(Boolean);
+};
+
+export const addMemberToTeam = async (
+  teamId: string,
+  userId: string
+) => {
+  const teamRef = doc(db, "teams", teamId);
+
+  const teamSnapshot = await getDoc(teamRef);
+
+  if (!teamSnapshot.exists()) {
+    throw new Error("Team not found.");
+  }
+
+  const teamData = teamSnapshot.data();
+  const memberIds: string[] = teamData.memberIds || [];
+
+  if (memberIds.includes(userId)) {
+    throw new Error("User is already a member of this team.");
+  }
+
+  await updateDoc(teamRef, {
+    memberIds: [...memberIds, userId],
+  });
 };
