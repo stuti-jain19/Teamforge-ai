@@ -96,3 +96,27 @@ export const addMemberToTeam = async (
     memberIds: [...memberIds, userId],
   });
 };
+
+export const joinTeam = async (
+  teamId: string,
+  userId: string
+) => {
+  const teamRef = doc(db, "teams", teamId);
+
+  const teamSnapshot = await getDoc(teamRef);
+
+  if (!teamSnapshot.exists()) {
+    throw new Error("Team not found.");
+  }
+
+  const teamData = teamSnapshot.data();
+  const memberIds: string[] = teamData.memberIds || [];
+
+  if (memberIds.includes(userId)) {
+    throw new Error("You are already a member of this team.");
+  }
+
+  await updateDoc(teamRef, {
+    memberIds: [...memberIds, userId],
+  });
+};

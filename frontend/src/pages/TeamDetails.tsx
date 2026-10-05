@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 
 import { useAuth } from "../context/AuthContext";
 import {
   getTeamMembers,
   addMemberToTeam,
+  joinTeam,
 } from "../lib/teamService";
 import { db } from "../firebase/firebase";
 import type { Team } from "../types/team";
@@ -21,11 +29,17 @@ function TeamDetails() {
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [error, setError] = useState("");
 
+  // Add Member states
   const [showAddMember, setShowAddMember] = useState(false);
   const [memberEmail, setMemberEmail] = useState("");
   const [addingMember, setAddingMember] = useState(false);
   const [memberError, setMemberError] = useState("");
   const [memberSuccess, setMemberSuccess] = useState("");
+
+  // Join Team states
+  const [joiningTeam, setJoiningTeam] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [joinSuccess, setJoinSuccess] = useState("");
 
   const loadMembers = async (memberIds: string[]) => {
     try {
@@ -83,6 +97,49 @@ function TeamDetails() {
     loadTeam();
   }, [teamId]);
 
+  // Join Team
+  const handleJoinTeam = async () => {
+    if (!team || !user) {
+      setJoinError("Unable to join team.");
+      return;
+    }
+
+    if (team.memberIds.includes(user.uid)) {
+      setJoinError("You are already a member of this team.");
+      return;
+    }
+
+    try {
+      setJoiningTeam(true);
+      setJoinError("");
+      setJoinSuccess("");
+
+      await joinTeam(team.id, user.uid);
+
+      const updatedMemberIds = [...team.memberIds, user.uid];
+
+      setTeam({
+        ...team,
+        memberIds: updatedMemberIds,
+      });
+
+      await loadMembers(updatedMemberIds);
+
+      setJoinSuccess("You joined the team successfully! 🎉");
+    } catch (error) {
+      console.error("Error joining team:", error);
+
+      if (error instanceof Error) {
+        setJoinError(error.message);
+      } else {
+        setJoinError("Something went wrong while joining the team.");
+      }
+    } finally {
+      setJoiningTeam(false);
+    }
+  };
+
+  // Add Member
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -154,9 +211,7 @@ function TeamDetails() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <p className="text-slate-400">
-          Loading team...
-        </p>
+        <p className="text-slate-400">Loading team...</p>
       </div>
     );
   }
@@ -173,13 +228,9 @@ function TeamDetails() {
           </Link>
 
           <div className="mt-10 bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
-            <div className="text-5xl mb-4">
-              😕
-            </div>
+            <div className="text-5xl mb-4">😕</div>
 
-            <h1 className="text-2xl font-bold mb-2">
-              Team Not Found
-            </h1>
+            <h1 className="text-2xl font-bold mb-2">Team Not Found</h1>
 
             <p className="text-slate-400">
               {error || "We couldn't find this team."}
@@ -191,6 +242,7 @@ function TeamDetails() {
   }
 
   const isOwner = user?.uid === team.ownerId;
+  const isMember = user ? team.memberIds.includes(user.uid) : false;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
@@ -220,10 +272,41 @@ function TeamDetails() {
               </p>
             </div>
 
-            <div className="text-5xl">
-              🚀
-            </div>
+            <div className="text-5xl">🚀</div>
           </div>
+
+          {/* Join Team */}
+          {!isMember && user && (
+            <div className="mt-8 pt-6 border-t border-slate-800">
+              <button
+                onClick={handleJoinTeam}
+                disabled={joiningTeam}
+                className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium transition"
+              >
+                {joiningTeam ? "Joining..." : "Join Team 🚀"}
+              </button>
+
+              {joinSuccess && (
+                <div className="mt-4 p-4 rounded-lg border border-green-800 bg-green-950/40 text-green-400">
+                  {joinSuccess}
+                </div>
+              )}
+
+              {joinError && (
+                <div className="mt-4 p-4 rounded-lg border border-red-800 bg-red-950/40 text-red-400">
+                  {joinError}
+                </div>
+              )}
+            </div>
+          )}
+
+          {isMember && (
+            <div className="mt-8 pt-6 border-t border-slate-800">
+              <span className="inline-block px-4 py-2 rounded-lg bg-green-950/40 border border-green-800 text-green-400">
+                ✓ You are a member of this team
+              </span>
+            </div>
+          )}
         </section>
 
         {/* Team Information */}
@@ -231,9 +314,7 @@ function TeamDetails() {
 
           {/* Owner */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <div className="text-3xl mb-4">
-              👑
-            </div>
+            <div className="text-3xl mb-4">👑</div>
 
             <h2 className="text-xl font-semibold mb-4">
               Team Owner
@@ -250,9 +331,7 @@ function TeamDetails() {
 
           {/* Members Count */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <div className="text-3xl mb-4">
-              👥
-            </div>
+            <div className="text-3xl mb-4">👥</div>
 
             <h2 className="text-xl font-semibold mb-4">
               Members
@@ -349,9 +428,7 @@ function TeamDetails() {
         <section className="mt-6 bg-slate-900 border border-slate-800 rounded-2xl p-8">
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="text-3xl">
-              👥
-            </div>
+            <div className="text-3xl">👥</div>
 
             <div>
               <h2 className="text-2xl font-semibold">
