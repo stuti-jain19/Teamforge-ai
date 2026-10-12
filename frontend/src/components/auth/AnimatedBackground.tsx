@@ -2,66 +2,26 @@ import { motion } from "framer-motion";
 
 export default function AnimatedBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-[#09090B]">
+    <div className="absolute inset-0 overflow-hidden bg-dot-grid">
+      <motion.svg
+        viewBox="0 0 540 540"
+        className="absolute top-10 -right-15 w-120 h-120 opacity-40"
+        animate={{ x: [0, 20, -10, 0], y: [0, -15, 10, 0] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        aria-hidden="true"
+      >
+        <line x1="90" y1="150" x2="260" y2="60" stroke="#FFC857" strokeWidth="2" opacity="0.5" />
+        <line x1="260" y1="60" x2="410" y2="140" stroke="#4BD6C2" strokeWidth="2" opacity="0.4" />
+        <line x1="90" y1="150" x2="190" y2="320" stroke="#7C5CFF" strokeWidth="2" opacity="0.5" />
+        <line x1="190" y1="320" x2="390" y2="355" stroke="#7C5CFF" strokeWidth="3" strokeDasharray="6 7" />
+        <circle cx="90" cy="150" r="24" fill="#FFC857" />
+        <circle cx="260" cy="60" r="20" fill="#7C5CFF" />
+        <circle cx="410" cy="140" r="17" fill="#4BD6C2" />
+        <circle cx="190" cy="320" r="22" fill="#7C5CFF" />
+        <circle cx="390" cy="355" r="18" fill="#FFC857" />
+      </motion.svg>
 
-      {/* Purple Blob */}
-      <motion.div
-        animate={{
-          x: [0, 80, -40, 0],
-          y: [0, -60, 40, 0],
-          scale: [1, 1.2, 0.9, 1],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute top-20 left-10 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl"
-      />
-
-      {/* Cyan Blob */}
-      <motion.div
-        animate={{
-          x: [0, -70, 30, 0],
-          y: [0, 60, -30, 0],
-          scale: [1, 0.9, 1.15, 1],
-        }}
-        transition={{
-          duration: 22,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute bottom-0 right-10 h-120 w-120 rounded-full bg-cyan-500/15 blur-3xl"
-      />
-
-      {/* Pink Accent */}
-      <motion.div
-        animate={{
-          x: [0, 50, -30, 0],
-          y: [0, -40, 20, 0],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500/10 blur-3xl"
-      />
-
-      {/* Grid Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, white 1px, transparent 1px),
-            linear-gradient(to bottom, white 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      {/* Radial Fade */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#09090B_90%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#0B0D17_92%)]" />
     </div>
   );
 }

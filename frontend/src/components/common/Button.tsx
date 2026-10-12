@@ -19,36 +19,27 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseClasses =
-    "relative overflow-hidden rounded-2xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:cursor-not-allowed disabled:opacity-60";
+    "relative overflow-hidden rounded-lg font-display font-bold transition-all duration-200 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
   const variants = {
     primary:
-      "bg-gradient-to-r from-violet-600 via-purple-600 to-cyan-500 text-white hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(139,92,246,0.45)]",
-
+      "bg-[#FFC857] text-[#0B0D17] border-2 border-white shadow-[4px_4px_0_#7C5CFF] hover:shadow-[6px_6px_0_#7C5CFF] hover:-translate-x-0.5 hover:-translate-y-0.5",
     secondary:
-      "bg-zinc-900 border border-zinc-700 text-white hover:border-violet-500 hover:bg-zinc-800",
-
+      "bg-[#13162B] border-2 border-[rgba(255,255,255,0.14)] text-white hover:border-[#7C5CFF]",
     ghost:
-      "bg-transparent border border-zinc-700 text-zinc-300 hover:border-violet-500 hover:text-white",
+      "bg-transparent border-2 border-[rgba(255,255,255,0.14)] text-[#A9A6C2] hover:border-[#7C5CFF] hover:text-white",
   };
 
   return (
     <motion.button
       whileTap={{ scale: 0.98 }}
-      whileHover={{ y: -2 }}
-      className={clsx(
-        baseClasses,
-        variants[variant],
-        fullWidth ? "w-full" : "",
-        "px-6 py-3",
-        className
-      )}
+      className={clsx(baseClasses, variants[variant], fullWidth ? "w-full" : "", "px-6 py-3", className)}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
         <div className="flex items-center justify-center gap-2">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
           <span>Loading...</span>
         </div>
       ) : (

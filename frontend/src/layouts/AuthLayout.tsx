@@ -9,106 +9,58 @@ interface AuthLayoutProps {
   children: ReactNode;
 }
 
-export default function AuthLayout({
-  title,
-  subtitle,
-  children,
-}: AuthLayoutProps) {
+export default function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#09090B] text-white">
-
+    <div className="relative min-h-screen overflow-hidden bg-[#0B0D17] text-white font-body">
       <AnimatedBackground />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center justify-between px-6 lg:px-12">
-
-        {/* LEFT SIDE */}
-
         <div className="hidden w-1/2 flex-col justify-center lg:flex">
-
-          <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-300">
-            ⚡ AI Powered Hackathon Platform
+          <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-[#4BD6C2] px-4 py-2 text-sm font-bold text-[#0B0D17] font-display">
+            ⚡ AI-Powered Hackathon Platform
           </span>
 
-          <h1 className="text-6xl font-black leading-tight">
-            TeamForge
-            <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-              {" "}
-              AI
-            </span>
+          <h1 className="font-display text-6xl font-extrabold leading-tight">
+            TeamForge <span className="text-[#FFC857]">AI</span>
           </h1>
 
-          <p className="mt-6 max-w-lg text-lg leading-8 text-zinc-400">
-            Find your perfect hackathon teammates with AI.
-            Build stronger teams, faster, and win together.
+          <p className="mt-6 max-w-lg text-lg leading-8 text-[#A9A6C2]">
+            Find your perfect hackathon teammates. Build stronger teams, faster, and win together.
           </p>
 
-          <div className="mt-12 space-y-5">
-
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <Sparkles className="text-violet-400" size={26} />
+          <div className="mt-12 space-y-3">
+            <div className="flex items-center gap-4 border border-[rgba(255,255,255,0.14)] border-l-[3px] border-l-[#7C5CFF] bg-[rgba(255,255,255,0.02)] p-4">
+              <Sparkles className="text-[#7C5CFF]" size={24} />
               <div>
-                <h3 className="font-semibold">
-                  AI Team Matching
-                </h3>
-                <p className="text-sm text-zinc-400">
-                  Find teammates based on skills,
-                  interests and goals.
-                </p>
+                <h3 className="font-display font-bold">AI Team Matching</h3>
+                <p className="text-sm text-[#A9A6C2]">Find teammates based on skills, interests and goals.</p>
               </div>
             </div>
-
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <Users className="text-cyan-400" size={26} />
+            <div className="flex items-center gap-4 border border-[rgba(255,255,255,0.14)] border-l-[3px] border-l-[#4BD6C2] bg-[rgba(255,255,255,0.02)] p-4">
+              <Users className="text-[#4BD6C2]" size={24} />
               <div>
-                <h3 className="font-semibold">
-                  Build Dream Teams
-                </h3>
-                <p className="text-sm text-zinc-400">
-                  Connect with developers,
-                  designers and innovators.
-                </p>
+                <h3 className="font-display font-bold">Build Dream Teams</h3>
+                <p className="text-sm text-[#A9A6C2]">Connect with developers, designers and innovators.</p>
               </div>
             </div>
-
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <Trophy className="text-yellow-400" size={26} />
+            <div className="flex items-center gap-4 border border-[rgba(255,255,255,0.14)] border-l-[3px] border-l-[#FFC857] bg-[rgba(255,255,255,0.02)] p-4">
+              <Trophy className="text-[#FFC857]" size={24} />
               <div>
-                <h3 className="font-semibold">
-                  Win More Hackathons
-                </h3>
-                <p className="text-sm text-zinc-400">
-                  Form balanced teams that
-                  maximize your chances.
-                </p>
+                <h3 className="font-display font-bold">Win More Hackathons</h3>
+                <p className="text-sm text-[#A9A6C2]">Form balanced teams that maximize your chances.</p>
               </div>
             </div>
-
           </div>
-
         </div>
-
-        {/* RIGHT SIDE */}
 
         <div className="flex w-full justify-center lg:w-1/2">
-
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-2xl shadow-[0_0_80px_rgba(139,92,246,0.15)]">
-
-            <h2 className="text-4xl font-bold">
-              {title}
-            </h2>
-
-            <p className="mt-3 mb-8 text-zinc-400">
-              {subtitle}
-            </p>
-
+          <div className="w-full max-w-md rounded-[20px] border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] p-8 backdrop-blur-xl">
+            <h2 className="font-display text-4xl font-bold">{title}</h2>
+            <p className="mt-3 mb-8 text-[#A9A6C2]">{subtitle}</p>
             {children}
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

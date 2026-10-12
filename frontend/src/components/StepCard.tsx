@@ -2,28 +2,31 @@ type StepCardProps = {
   icon: string;
   title: string;
   description: string;
+  number?: string;
 };
 
-function StepCard({
-  icon,
-  title,
-  description,
-}: StepCardProps) {
+function StepCard({ icon, title, description, number }: StepCardProps) {
   return (
-    <div className="group bg-slate-900 border border-slate-700 rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:border-cyan-400 hover:shadow-xl hover:shadow-cyan-500/20">
+    <div className="relative pt-2">
+      {number && (
+        <span
+          className="absolute -top-8 -left-1 font-display font-extrabold text-[76px] leading-none select-none"
+          style={{ color: "rgba(255,255,255,0.05)" }}
+          aria-hidden="true"
+        >
+          {number}
+        </span>
+      )}
 
-      <div className="text-6xl mb-6 transition-transform duration-300 group-hover:scale-110">
-  {icon}
-</div>
-
-      <h3 className="text-white text-2xl font-bold mb-4">
-        {title}
-      </h3>
-
-      <p className="text-gray-400">
-        {description}
-      </p>
-
+      <div className="relative z-10">
+        <div className="text-4xl mb-3">{icon}</div>
+        <h3 className="text-white text-lg font-display font-bold mb-2">
+          {title}
+        </h3>
+        <p className="text-[#A9A6C2] text-sm leading-relaxed">
+          {description}
+        </p>
+      </div>
     </div>
   );
 }

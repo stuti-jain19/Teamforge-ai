@@ -2,7 +2,11 @@ import TeamCard from "../components/dashboard/TeamCard";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { createTeam, getUserTeams } from "../lib/teamService";
+import {
+  createTeam,
+  getUserTeams,
+  getAllTeams,
+} from "../lib/teamService";
 import type { Team } from "../types/team";
 
 function Dashboard() {
@@ -17,6 +21,11 @@ function Dashboard() {
   const [creatingTeam, setCreatingTeam] = useState(false);
   const [teamError, setTeamError] = useState("");
   const [teamSuccess, setTeamSuccess] = useState("");
+
+  // Discover Teams
+  const [discoverTeams, setDiscoverTeams] = useState<Team[]>([]);
+  const [loadingDiscoverTeams, setLoadingDiscoverTeams] = useState(false);
+  const [showDiscoverTeams, setShowDiscoverTeams] = useState(false);
 
   // Load user's teams
   useEffect(() => {
@@ -85,6 +94,33 @@ function Dashboard() {
       setTeamError("Something went wrong while creating your team.");
     } finally {
       setCreatingTeam(false);
+    }
+  };
+
+  // Discover teams that the current user has not joined
+  const handleDiscoverTeams = async () => {
+    if (!user) {
+      setTeamError("You must be logged in to discover teams.");
+      return;
+    }
+
+    try {
+      setLoadingDiscoverTeams(true);
+      setTeamError("");
+
+      const allTeams = await getAllTeams();
+
+      const availableTeams = allTeams.filter(
+        (team) => !team.memberIds.includes(user.uid)
+      );
+
+      setDiscoverTeams(availableTeams);
+      setShowDiscoverTeams(true);
+    } catch (error) {
+      console.error("Error loading available teams:", error);
+      setTeamError("Unable to load available teams.");
+    } finally {
+      setLoadingDiscoverTeams(false);
     }
   };
 
@@ -247,12 +283,12 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                 {teams.map((team) => (
-  <TeamCard
-    key={team.id}
-    team={team}
-  />
-))}
+                  {teams.map((team) => (
+                    <TeamCard
+                      key={team.id}
+                      team={team}
+                    />
+                  ))}
                 </div>
               )}
 
@@ -299,8 +335,14 @@ function Dashboard() {
               Discover teammates whose skills complement yours.
             </p>
 
-            <button className="mt-5 text-blue-400 font-medium hover:text-blue-300 transition">
-              Find Teammates →
+            <button
+              onClick={handleDiscoverTeams}
+              disabled={loadingDiscoverTeams}
+              className="mt-5 text-blue-400 font-medium hover:text-blue-300 transition disabled:text-slate-600"
+            >
+              {loadingDiscoverTeams
+                ? "Finding Teams..."
+                : "Find Teammates →"}
             </button>
           </div>
 
@@ -324,6 +366,92 @@ function Dashboard() {
           </div>
 
         </section>
+
+        {/* Discover Teams */}
+        {showDiscoverTeams && (
+          <section className="mt-10">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="text-2xl font-semibold">
+                    Discover Teams 🔎
+                  </h3>
+
+                  <p className="text-slate-400 text-sm mt-1">
+                    Find teams looking for members like you.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowDiscoverTeams(false)}
+                  className="text-slate-400 hover:text-white transition"
+                >
+                  Close
+                </button>
+              </div>
+
+              {discoverTeams.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="text-4xl mb-3">
+                    😕
+                  </div>
+
+                  <p className="text-slate-400">
+                    No teams are currently available to join.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {discoverTeams.map((team) => (
+                    <div
+                      key={team.id}
+                      className="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-blue-700 transition"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+                          <h4 className="text-xl font-semibold">
+                            {team.name}
+                          </h4>
+
+                          <p className="text-slate-400 text-sm mt-2">
+                            {team.description ||
+                              "No description provided."}
+                          </p>
+                        </div>
+
+                        <span className="text-2xl">
+                          🚀
+                        </span>
+
+                      </div>
+
+                      <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-800">
+
+                        <span className="text-sm text-slate-500">
+                          👥 {team.memberIds.length}{" "}
+                          {team.memberIds.length === 1
+                            ? "member"
+                            : "members"}
+                        </span>
+
+                        <Link
+                          to={`/team/${team.id}`}
+                          className="text-blue-400 hover:text-blue-300 font-medium transition"
+                        >
+                          View Team →
+                        </Link>
+
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </section>
+        )}
 
       </div>
     </div>

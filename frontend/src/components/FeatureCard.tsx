@@ -2,20 +2,35 @@ type FeatureCardProps = {
   title: string;
   description: string;
   icon: string;
+  accent?: "violet" | "citrus" | "mint";
 };
 
-function FeatureCard({ title, description, icon }: FeatureCardProps) {
-  return (
-    <div className="group rounded-2xl border border-slate-700 bg-slate-900 p-8 transition-all duration-300 hover:-translate-y-3 hover:border-cyan-400 hover:shadow-2xl hover:shadow-cyan-500/20 cursor-pointer">
-      <div className="text-5xl mb-6 transition-transform duration-300 group-hover:scale-110">
-  {icon}
-</div>
+const accentMap = {
+  violet: "#7C5CFF",
+  citrus: "#FFC857",
+  mint: "#4BD6C2",
+};
 
-      <h3 className="text-white text-2xl font-bold mb-4">
+function FeatureCard({ title, description, icon, accent = "violet" }: FeatureCardProps) {
+  const color = accentMap[accent];
+
+  return (
+    <div
+      className="border border-[rgba(255,255,255,0.14)] p-7 bg-[rgba(255,255,255,0.02)]"
+      style={{ borderTop: `3px solid ${color}` }}
+    >
+      <div
+        className="w-10 h-10 rounded-[9px] flex items-center justify-center text-xl mb-5"
+        style={{ background: color }}
+      >
+        {icon}
+      </div>
+
+      <h3 className="font-display text-white text-lg font-bold mb-2.5">
         {title}
       </h3>
 
-      <p className="text-gray-400 leading-7">
+      <p className="text-[#A9A6C2] text-sm leading-relaxed">
         {description}
       </p>
     </div>

@@ -69,9 +69,9 @@ export default function Register() {
   const strengthColor = [
     "bg-red-500",
     "bg-orange-500",
-    "bg-yellow-400",
-    "bg-cyan-400",
-    "bg-green-500",
+    "bg-[#FFC857]",
+    "bg-[#4BD6C2]",
+    "bg-[#4BD6C2]",
   ][passwordStrength];
 
   async function handleGoogleSignIn() {
@@ -262,7 +262,7 @@ export default function Register() {
         {/* Password Match */}
         {confirmPassword &&
           password === confirmPassword && (
-            <div className="flex items-center gap-2 text-sm text-green-400">
+            <div className="flex items-center gap-2 text-sm text-[#4BD6C2]">
               <HiCheckCircle size={18} />
               Passwords match
             </div>
@@ -280,11 +280,11 @@ export default function Register() {
         {/* Divider */}
         <div className="relative py-2">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-700" />
+            <div className="w-full border-t border-[rgba(255,255,255,0.14)]" />
           </div>
 
           <div className="relative flex justify-center">
-            <span className="bg-[#09090B] px-4 text-sm text-zinc-400">
+            <span className="bg-[#13162B] px-4 text-sm text-[#A9A6C2]">
               OR
             </span>
           </div>
@@ -309,7 +309,7 @@ export default function Register() {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="font-semibold text-violet-400 transition hover:text-violet-300"
+            className="font-semibold text-[#7C5CFF] transition hover:text-[#9b85ff]"
           >
             Login
           </Link>

@@ -53,6 +53,15 @@ export const getUserTeams = async (userId: string): Promise<Team[]> => {
   })) as Team[];
 };
 
+export const getAllTeams = async (): Promise<Team[]> => {
+  const snapshot = await getDocs(teamsCollection);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Team[];
+};
+
 export const getTeamMembers = async (memberIds: string[]) => {
   const members = await Promise.all(
     memberIds.map(async (uid) => {
